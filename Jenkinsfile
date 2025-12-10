@@ -1,30 +1,29 @@
 pipeline {
   agent any
 
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+  }
+
   environment {
       IMAGE_NAME = "pankaj8900/springboot-app"
-      TAG = "${BUILD_NUMBER}"
+      TAG = "${BUILD_NUMBER}-${GIT_COMMIT.substring(0,7)}"
   }
 
   stages {
 
-    stage('Checkout Code from GitHub') {
+    stage('Checkout Code') {
       steps {
         git branch: 'main',
             url: 'https://github.com/codiebyheaart/Spring-Boot-MySQL-Deployment-on-Azure-Kubernetes-Service.git'
       }
     }
 
-    stage('Compile & Package') {
-       steps {
-          sh 'chmod +x gradlew'
-          sh './gradlew build -x test'
-      }
-    }
-
-    stage('Run Unit Test (Optional)') {
+    stage('Build & Test') {
       steps {
-        sh './gradlew test'
+        sh 'chmod +x gradlew'
+        sh './gradlew clean build'
       }
     }
 
@@ -55,11 +54,7 @@ pipeline {
   }
 
   post {
-    success {
-      echo "✅ Build SUCCESS - Docker Image pushed!"
-    }
-    failure {
-      echo "❌ Build FAILED - Check logs"
-    }
+    success { echo "Build SUCCESS - Docker Image pushed!" }
+    failure { echo "Build FAILED - Check Jenkins logs" }
   }
 }
