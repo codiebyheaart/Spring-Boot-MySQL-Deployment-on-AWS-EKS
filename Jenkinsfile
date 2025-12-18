@@ -51,6 +51,16 @@ pipeline {
         archiveArtifacts artifacts: '**/*.jar'
       }
     }
+     stage('Deploy to EKS') {
+            steps {
+                sh """
+                    aws eks update-kubeconfig --name ${EKS_CLUSTER} --region ${AWS_REGION}
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+                    kubectl rollout status deployment/my-app
+                """
+            }
+        }
   }
 
   post {
